@@ -3,19 +3,20 @@
 <head>
     <title>Baby Name Query</title>
     <style>
-        #debugInfo, #analytics {
+        #loadingBar {
+            width: 0;
+            height: 20px;
+            background-color: green;
+        }
+        #debugInfo {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            max-height: 80vh;
+            bottom: 0;
+            left: 0;
+            max-height: 20vh;
             overflow: auto;
             border: 1px solid #ccc;
             background-color: #f7f7f7;
             padding: 10px;
-        }
-        #analytics {
-            left: auto;
-            right: 10px;
         }
     </style>
 </head>
@@ -26,69 +27,63 @@
         <input type="text" id="name" value="Zane">
         <button type="button" onclick="queryName()">Query</button>
     </form>
-    <div id="debugInfo"></div>
+    <div id="loadingBar"></div>
     <div id="analytics"></div>
+    <div id="debugInfo"></div>
 
     <script>
-        // Function to query baby names
         function queryName() {
             const name = document.getElementById("name").value;
-            const years = Array.from({ length: 2023 - 1880 + 1 }, (_, i) => 1880 + i);
             const apiUrl = `names/`;
-
-            const debugDiv = document.getElementById("debugInfo");
             const analyticsDiv = document.getElementById("analytics");
-            debugDiv.innerHTML = "";
+            const debugDiv = document.getElementById("debugInfo");
+            const loadingBar = document.getElementById("loadingBar");
             analyticsDiv.innerHTML = "";
-
-            console.log("Loading data from text files...");
-
+            debugDiv.innerHTML = "";
+            
             let nameData = [];
 
-            // Fetch data for each year
-            const fetchDataPromises = years.reduce((promiseChain, year) => {
+            const fetchDataPromises = Array.from({ length: 2023 - 1880 + 1 }, (_, i) => 1880 + i).reduce((promiseChain, year) => {
                 return promiseChain.then(() => {
                     return fetch(`${apiUrl}yob${year}.txt`)
                         .then(response => response.text())
                         .then(text => {
-                            // Debug: Show names as they are loaded
-                            const loadedNames = text.split('\n').map(line => line.split(',')[0]).join(', ');
-                            debugDiv.innerHTML += `Loaded names for year ${year}: ${loadedNames}<br>`;
-
-                            // Analyze text for the given name
                             const lines = text.split('\n');
-                            const nameLine = lines.find(line => line.startsWith(name + ','));
-                            if (nameLine) {
-                                const [, gender, count] = nameLine.split(',');
+                            const nameLines = lines.filter(line => line.startsWith(name + ','));
+                            nameLines.forEach(line => {
+                                const [_, gender, count] = line.split(',');
                                 nameData.push({ year, gender, count: parseInt(count) });
-                            }
+                            });
+
+                            const progress = ((year - 1880) / (2023 - 1880)) * 100;
+                            loadingBar.style.width = `${progress}%`;
+                            debugDiv.innerHTML += `Data loaded for year ${year}<br>`;
 
                             return text;
                         })
                         .catch(error => {
-                            debugDiv.innerHTML = `Error loading data for year ${year}: ${error}<br>` + debugDiv.innerHTML;
                             return "";
                         });
                 });
             }, Promise.resolve());
 
-            // Handle fetch results and display analytics
             fetchDataPromises
                 .then(() => {
-                    console.log("Data loaded successfully:", nameData);
-
-                    // Calculate analytics
                     const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
+                    const maleCount = nameData.filter(data => data.gender === 'M').reduce((acc, data) => acc + data.count, 0);
+                    const femaleCount = nameData.filter(data => data.gender === 'F').reduce((acc, data) => acc + data.count, 0);
                     const firstYear = nameData[0]?.year || 'N/A';
                     const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
 
-                    // Display analytics
                     analyticsDiv.innerHTML = `
                         <h2>Analytics for ${name}</h2>
                         <p>Total Occurrences: ${totalOccurrences}</p>
+                        <p>Male Count: ${maleCount}</p>
+                        <p>Female Count: ${femaleCount}</p>
                         <p>First Year Recorded: ${firstYear}</p>
                         <p>Last Year Recorded: ${lastYear}</p>
                     `;
+                    loadingBar.style.width = '0%';
                 })
                 .catch(error => {
                     console.error("Error querying data:", error);
