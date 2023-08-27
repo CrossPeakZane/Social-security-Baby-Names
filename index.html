@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Baby Name Query</title>
+    <style>
+        #debugInfo {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            max-height: 80vh;
+            overflow: auto;
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Baby Name Query</h1>
+    <form id="queryForm">
+        <label for="name">Enter a name:</label>
+        <input type="text" id="name" value="Zane">
+        <button type="button" onclick="queryName()">Query</button>
+    </form>
+    <div id="debugInfo"></div>
+
+    <script>
+        function queryName() {
+            const name = document.getElementById("name").value;
+            const years = Array.from({ length: 2023 - 1880 + 1 }, (_, i) => 1880 + i);
+            const apiUrl = `names/`;
+
+            const debugDiv = document.getElementById("debugInfo");
+            debugDiv.innerHTML = "";
+
+            console.log("Loading data from text files...");
+
+            const fetchDataPromises = years.reduce((promiseChain, year) => {
+                return promiseChain.then(() => {
+                    return fetch(`${apiUrl}yob${year}.txt`)
+                        .then(response => response.text())
+                        .then(text => {
+                            debugDiv.innerHTML = `Loaded data for year ${year}: ${text.length} characters<br>` + debugDiv.innerHTML;
+                            return text;
+                        })
+                        .catch(error => {
+                            debugDiv.innerHTML = `Error loading data for year ${year}: ${error}<br>` + debugDiv.innerHTML;
+                            return "";
+                        });
+                });
+            }, Promise.resolve());
+
+            fetchDataPromises
+                .then(texts => {
+                    console.log("Data loaded successfully:", texts);
+                })
+                .catch(error => {
+                    console.error("Error querying data:", error);
+                });
+        }
+    </script>
+</body>
+</html>
