@@ -1,4 +1,43 @@
-html {
-  height: 100%;
-  width: 100%;
+body {
+    background-color: #f4f1de;
+    font-family: 'Georgia', serif;
+}
+h1 {
+    text-align: center;
+    color: #d4af37;
+    border-bottom: 2px solid #d4af37;
+}
+#queryForm, #analytics, #charts {
+    border: 3px solid #d4af37;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 15px;
+}
+#collapseButton {
+    background-color: #d4af37;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+}
+#debugInfo {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    max-height: 20vh;
+    overflow: auto;
+    border: 3px solid #d4af37;
+    background-color: #f4f1de;
+    padding: 10px;
+    display: flex;
+    flex-direction: column-reverse;
+}
+#loadingBar {
+    width: 0;
+    height: 20px;
+    background-color: #d4af37;
+}
+.chart-container {
+    width: 50%; /* Adjust as needed */
+    margin: auto;
 }
