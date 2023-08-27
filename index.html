@@ -4,36 +4,44 @@
     <title>Baby Name Query</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #loadingBar {
-            width: 0;
-            height: 20px;
-            background-color: green;
+        body {
+            background-color: #f4f1de; /* Luxurious background color */
+            font-family: 'Georgia', serif; /* Elegant font */
+        }
+        h1 {
+            text-align: center;
+            color: #d4af37; /* Gold text */
+            border-bottom: 2px solid #d4af37; /* Gold border */
+        }
+        #queryForm, #analytics, #charts {
+            border: 3px solid #d4af37; /* Gold frame */
+            padding: 20px;
+            margin: 20px;
+            border-radius: 15px; /* Rounded corners */
+        }
+        #collapseButton {
+            background-color: #d4af37; /* Gold background */
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
         }
         #debugInfo {
             position: fixed;
             bottom: 0;
-            right: 0; /* Moved to the bottom right */
+            right: 0;
             max-height: 20vh;
             overflow: auto;
-            border: 1px solid #ccc;
-            background-color: #f7f7f7;
+            border: 3px solid #d4af37; /* Gold frame */
+            background-color: #f4f1de;
             padding: 10px;
             display: flex;
-            flex-direction: column-reverse; /* New entries will appear at the top */
+            flex-direction: column-reverse;
         }
-        #collapseButton {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            z-index: 1;
-        }
-        #charts {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        .chart-container {
-            width: 50%;
-            height: 400px;
+        #loadingBar {
+            width: 0;
+            height: 20px;
+            background-color: #d4af37; /* Gold color */
         }
     </style>
 </head>
@@ -46,7 +54,7 @@
     </form>
     <div id="loadingBar"></div>
     <div id="analytics"></div>
-    <button id="collapseButton" onclick="toggleDebug()">Collapse</button> <!-- Collapse button -->
+    <button id="collapseButton" onclick="toggleDebug()">Collapse</button>
     <div id="debugInfo"></div>
     <div id="charts"></div>
 
