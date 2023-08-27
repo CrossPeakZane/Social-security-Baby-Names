@@ -1,28 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Baby Name Analytics</title>
+    <title>Baby Name Query</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
-            padding: 1em;
-        }
-        #content {
-            padding: 2em;
-        }
-        #queryForm {
-            margin-bottom: 2em;
-        }
         #loadingBar {
             width: 0;
             height: 20px;
@@ -31,54 +12,46 @@
         #debugInfo {
             position: fixed;
             bottom: 0;
-            left: 0;
+            right: 0; /* Moved to the bottom right */
             max-height: 20vh;
             overflow: auto;
             border: 1px solid #ccc;
             background-color: #f7f7f7;
             padding: 10px;
+            display: flex;
+            flex-direction: column-reverse; /* New entries will appear at the top */
         }
-        #analytics {
-            background-color: #fff;
-            padding: 1em;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        #collapseButton {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            z-index: 1;
         }
         #charts {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
         }
         .chart-container {
-            width: 48%;
+            width: 50%;
             height: 400px;
-            background-color: #fff;
-            padding: 1em;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Baby Name Analytics</h1>
-    </header>
-    <div id="content">
-        <form id="queryForm">
-            <label for="name">Enter a name:</label>
-            <input type="text" id="name" value="Zane">
-            <button type="button" onclick="queryName()">Analyze</button>
-        </form>
-        <div id="loadingBar"></div>
-        <div id="analytics"></div>
-        <div id="charts"></div>
-        <div id="debugInfo"></div>
-    </div>
-
-
+    <h1>Baby Name Query</h1>
+    <form id="queryForm">
+        <label for="name">Enter a name:</label>
+        <input type="text" id="name" value="Zane">
+        <button type="button" onclick="queryName()">Query</button>
+    </form>
+    <div id="loadingBar"></div>
+    <div id="analytics"></div>
+    <button id="collapseButton" onclick="toggleDebug()">Collapse</button> <!-- Collapse button -->
+    <div id="debugInfo"></div>
+    <div id="charts"></div>
 
     <script>
-        function queryName() {
+      function queryName() {
             const name = document.getElementById("name").value;
             const apiUrl = `names/`;
             const analyticsDiv = document.getElementById("analytics");
@@ -182,6 +155,14 @@
                 .catch(error => {
                     console.error("Error querying data:", error);
                 });
+        }
+      function toggleDebug() {
+            const debugDiv = document.getElementById("debugInfo");
+            if (debugDiv.style.display === "none") {
+                debugDiv.style.display = "flex";
+            } else {
+                debugDiv.style.display = "none";
+            }
         }
     </script>
 </body>
