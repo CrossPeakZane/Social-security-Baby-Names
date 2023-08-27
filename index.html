@@ -3,7 +3,7 @@
 <head>
     <title>Baby Name Query</title>
     <style>
-        #debugInfo {
+        #debugInfo, #analytics {
             position: fixed;
             top: 10px;
             left: 10px;
@@ -12,6 +12,10 @@
             border: 1px solid #ccc;
             background-color: #f7f7f7;
             padding: 10px;
+        }
+        #analytics {
+            left: auto;
+            right: 10px;
         }
     </style>
 </head>
@@ -23,24 +27,42 @@
         <button type="button" onclick="queryName()">Query</button>
     </form>
     <div id="debugInfo"></div>
+    <div id="analytics"></div>
 
     <script>
+        // Function to query baby names
         function queryName() {
             const name = document.getElementById("name").value;
             const years = Array.from({ length: 2023 - 1880 + 1 }, (_, i) => 1880 + i);
             const apiUrl = `names/`;
 
             const debugDiv = document.getElementById("debugInfo");
+            const analyticsDiv = document.getElementById("analytics");
             debugDiv.innerHTML = "";
+            analyticsDiv.innerHTML = "";
 
             console.log("Loading data from text files...");
 
+            let nameData = [];
+
+            // Fetch data for each year
             const fetchDataPromises = years.reduce((promiseChain, year) => {
                 return promiseChain.then(() => {
                     return fetch(`${apiUrl}yob${year}.txt`)
                         .then(response => response.text())
                         .then(text => {
-                            debugDiv.innerHTML = `Loaded data for year ${year}: ${text.length} characters<br>` + debugDiv.innerHTML;
+                            // Debug: Show names as they are loaded
+                            const loadedNames = text.split('\n').map(line => line.split(',')[0]).join(', ');
+                            debugDiv.innerHTML += `Loaded names for year ${year}: ${loadedNames}<br>`;
+
+                            // Analyze text for the given name
+                            const lines = text.split('\n');
+                            const nameLine = lines.find(line => line.startsWith(name + ','));
+                            if (nameLine) {
+                                const [, gender, count] = nameLine.split(',');
+                                nameData.push({ year, gender, count: parseInt(count) });
+                            }
+
                             return text;
                         })
                         .catch(error => {
@@ -50,9 +72,23 @@
                 });
             }, Promise.resolve());
 
+            // Handle fetch results and display analytics
             fetchDataPromises
-                .then(texts => {
-                    console.log("Data loaded successfully:", texts);
+                .then(() => {
+                    console.log("Data loaded successfully:", nameData);
+
+                    // Calculate analytics
+                    const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
+                    const firstYear = nameData[0]?.year || 'N/A';
+                    const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
+
+                    // Display analytics
+                    analyticsDiv.innerHTML = `
+                        <h2>Analytics for ${name}</h2>
+                        <p>Total Occurrences: ${totalOccurrences}</p>
+                        <p>First Year Recorded: ${firstYear}</p>
+                        <p>Last Year Recorded: ${lastYear}</p>
+                    `;
                 })
                 .catch(error => {
                     console.error("Error querying data:", error);
