@@ -42,10 +42,15 @@
             flex-direction: column-reverse;
         }
         #loadingBar {
-            width: 0;
-            height: 20px;
-            background-color: #d4af37;
-            display: none;  /* Initially hidden */
+    width: 100%;  /* Full width of the parent */
+    height: 20px;  /* Set a height */
+    background-color: grey;  /* Background color for the loading bar */
+    display: none;  /* Initially hidden */
+        }
+          .chart-container {
+            width: 50%;  /* Adjust the width */
+            height: 500px;  /* Adjust the height */
+            margin: auto;
         }
     </style>
 </head>
@@ -66,6 +71,7 @@
         let allData = {};
 
         async function loadData() {
+          
             document.getElementById("loadingBar").style.display = "block";  // Show loading bar
             document.getElementById("debugInfo").innerHTML = "Starting to load data...";  // Initialize debug info
 
@@ -90,7 +96,10 @@
         }
 
         window.addEventListener('load', async () => {
+         document.getElementById("loadingBar").style.display = "block";  // Show loading bar
             await loadData();
+            document.getElementById("loadingBar").style.display = "none";  // Hide loading bar
+ 
         });
 
         function queryName() {
