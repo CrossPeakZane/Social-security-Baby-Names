@@ -52,119 +52,118 @@
         <input type="text" id="name" value="Zane">
         <button type="button" onclick="queryName()">Query</button>
     </form>
-    <div id="loadingBar"></div>
+    <div id="loadingBar" style="height: 20px; background-color: grey;">
+    <div id="progress" style="width: 0%; height: 100%; background-color: green;"></div>
+</div>
     <div id="analytics"></div>
     <button id="collapseButton" onclick="toggleDebug()">Collapse</button>
     <div id="debugInfo"></div>
     <div id="charts"></div>
 
     <script>
-      function queryName() {
+        let allData = {};  // Store all data here
+
+        // Function to load all data once
+        async function loadData() {
+            for (let year = 1976; year <= 2023; year++) {
+                const response = await fetch(`./names/yob${year}.txt`);
+                const text = await response.text();
+                allData[year] = text.split('\n').map(line => {
+                    const [name, gender, count] = line.split(',');
+                    return { name, gender, count: parseInt(count) };
+                });
+            }
+        }
+
+        // Load data only once when the page is loaded
+        window.addEventListener('load', async () => {
+            await loadData();
+        });
+
+        function queryName() {
+            // Clear existing analytics and charts
+            document.getElementById('analytics').innerHTML = '';
+            document.getElementById('charts').innerHTML = '';
+
             const name = document.getElementById("name").value;
-            const apiUrl = `names/`;
             const analyticsDiv = document.getElementById("analytics");
             const debugDiv = document.getElementById("debugInfo");
-            const loadingBar = document.getElementById("loadingBar");
-            analyticsDiv.innerHTML = "";
-            debugDiv.innerHTML = "";
-            
+
             let nameData = [];
 
-            const fetchDataPromises = Array.from({ length: 2023 - 1880 + 1 }, (_, i) => 1880 + i).reduce((promiseChain, year) => {
-                return promiseChain.then(() => {
-                    return fetch(`${apiUrl}yob${year}.txt`)
-                        .then(response => response.text())
-                        .then(text => {
-                            const lines = text.split('\n');
-                            const nameLines = lines.filter(line => line.startsWith(name + ','));
-                            nameLines.forEach(line => {
-                                const [_, gender, count] = line.split(',');
-                                nameData.push({ year, gender, count: parseInt(count) });
-                            });
-
-                            const progress = ((year - 1880) / (2023 - 1880)) * 100;
-                            loadingBar.style.width = `${progress}%`;
-                            debugDiv.innerHTML += `Data loaded for year ${year}<br>`;
-
-                            return text;
-                        })
-                        .catch(error => {
-                            return "";
-                        });
+            for (const [year, lines] of Object.entries(allData)) {
+                const nameLines = lines.filter(line => line.name === name);
+                nameLines.forEach(line => {
+                    nameData.push({ year, gender: line.gender, count: line.count });
                 });
-            }, Promise.resolve());
+            }
 
-            fetchDataPromises
-                .then(() => {
-                    const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
-                    const maleCount = nameData.filter(data => data.gender === 'M').reduce((acc, data) => acc + data.count, 0);
-                    const femaleCount = nameData.filter(data => data.gender === 'F').reduce((acc, data) => acc + data.count, 0);
-                    const firstYear = nameData[0]?.year || 'N/A';
-                    const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
+            // Your existing analytics and chart generation code here
+const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
+const maleCount = nameData.filter(data => data.gender === 'M').reduce((acc, data) => acc + data.count, 0);
+const femaleCount = nameData.filter(data => data.gender === 'F').reduce((acc, data) => acc + data.count, 0);
+const firstYear = nameData[0]?.year || 'N/A';
+const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
 
-                    analyticsDiv.innerHTML = `
-                        <h2>Analytics for ${name}</h2>
-                        <p>Total Occurrences: ${totalOccurrences}</p>
-                        <p>Male Count: ${maleCount}</p>
-                        <p>Female Count: ${femaleCount}</p>
-                        <p>First Year Recorded: ${firstYear}</p>
-                        <p>Last Year Recorded: ${lastYear}</p>
-                    `;
-                    loadingBar.style.width = '0%';
+analyticsDiv.innerHTML = `
+    <h2>Analytics for ${name}</h2>
+    <p>Total Occurrences: ${totalOccurrences}</p>
+    <p>Male Count: ${maleCount}</p>
+    <p>Female Count: ${femaleCount}</p>
+    <p>First Year Recorded: ${firstYear}</p>
+    <p>Last Year Recorded: ${lastYear}</p>
+`;
 
-                    // Generate Charts
-                    const ctx1 = document.createElement('canvas');
-                    const ctx2 = document.createElement('canvas');
-                    const chartDiv1 = document.createElement('div');
-                    const chartDiv2 = document.createElement('div');
-                    chartDiv1.className = 'chart-container';
-                    chartDiv2.className = 'chart-container';
-                    chartDiv1.appendChild(ctx1);
-                    chartDiv2.appendChild(ctx2);
-                    document.getElementById('charts').appendChild(chartDiv1);
-                    document.getElementById('charts').appendChild(chartDiv2);
+// Generate Charts
+const ctx1 = document.createElement('canvas');
+const ctx2 = document.createElement('canvas');
+const chartDiv1 = document.createElement('div');
+const chartDiv2 = document.createElement('div');
+chartDiv1.className = 'chart-container';
+chartDiv2.className = 'chart-container';
+chartDiv1.appendChild(ctx1);
+chartDiv2.appendChild(ctx2);
+document.getElementById('charts').appendChild(chartDiv1);
+document.getElementById('charts').appendChild(chartDiv2);
 
-                    const years = [...new Set(nameData.map(data => data.year))];
-                    const maleData = years.map(year => nameData.filter(data => data.year === year && data.gender === 'M').reduce((acc, data) => acc + data.count, 0));
-                    const femaleData = years.map(year => nameData.filter(data => data.year === year && data.gender === 'F').reduce((acc, data) => acc + data.count, 0));
+const years = [...new Set(nameData.map(data => data.year))];
+const maleData = years.map(year => nameData.filter(data => data.year === year && data.gender === 'M').reduce((acc, data) => acc + data.count, 0));
+const femaleData = years.map(year => nameData.filter(data => data.year === year && data.gender === 'F').reduce((acc, data) => acc + data.count, 0));
 
-                    new Chart(ctx1, {
-                        type: 'line',
-                        data: {
-                            labels: years,
-                            datasets: [
-                                {
-                                    label: 'Male',
-                                    data: maleData,
-                                    borderColor: 'blue',
-                                    fill: false
-                                },
-                                {
-                                    label: 'Female',
-                                    data: femaleData,
-                                    borderColor: 'pink',
-                                    fill: false
-                                }
-                            ]
-                        }
-                    });
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: years,
+        datasets: [
+            {
+                label: 'Male',
+                data: maleData,
+                borderColor: 'blue',
+                fill: false
+            },
+            {
+                label: 'Female',
+                data: femaleData,
+                borderColor: 'pink',
+                fill: false
+            }
+        ]
+    }
+});
 
-                    new Chart(ctx2, {
-                        type: 'pie',
-                        data: {
-                            labels: ['Male', 'Female'],
-                            datasets: [{
-                                data: [maleCount, femaleCount],
-                                backgroundColor: ['blue', 'pink']
-                            }]
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error("Error querying data:", error);
-                });
+new Chart(ctx2, {
+    type: 'pie',
+    data: {
+        labels: ['Male', 'Female'],
+        datasets: [{
+            data: [maleCount, femaleCount],
+            backgroundColor: ['blue', 'pink']
+        }]
+    }
+});
         }
-      function toggleDebug() {
+
+        function toggleDebug() {
             const debugDiv = document.getElementById("debugInfo");
             if (debugDiv.style.display === "none") {
                 debugDiv.style.display = "flex";
@@ -172,6 +171,23 @@
                 debugDiv.style.display = "none";
             }
         }
+      async function loadData() {
+    const totalYears = 2023 - 1976 + 1;
+    let loadedYears = 0;
+    for (let year = 1976; year <= 2023; year++) {
+        const response = await fetch(`./names/yob${year}.txt`);
+        const text = await response.text();
+        allData[year] = text.split('\n').map(line => {
+            const [name, gender, count] = line.split(',');
+            return { name, gender, count: parseInt(count) };
+        });
+        loadedYears++;
+        const progress = (loadedYears / totalYears) * 100;
+        document.getElementById("progress").style.width = `${progress}%`;
+    }
+    // Hide the loading bar when done
+    document.getElementById("loadingBar").style.display = "none";
+}
     </script>
 </body>
 </html>
