@@ -5,34 +5,37 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            background-color: #f4f1de; /* Luxurious background color */
-            font-family: 'Georgia', serif; /* Elegant font */
+            background-color: #f4f1de;
+            font-family: 'Georgia', serif;
         }
         h1 {
             text-align: center;
-            color: #d4af37; /* Gold text */
-            border-bottom: 2px solid #d4af37; /* Gold border */
+            color: #d4af37;
+            border-bottom: 2px solid #d4af37;
         }
         #queryForm, #analytics, #charts {
-            border: 3px solid #d4af37; /* Gold frame */
+            border: 3px solid #d4af37;
             padding: 20px;
             margin: 20px;
-            border-radius: 15px; /* Rounded corners */
+            border-radius: 15px;
         }
         #collapseButton {
-            background-color: #d4af37; /* Gold background */
+            background-color: #d4af37;
             color: white;
             border: none;
             padding: 10px;
             border-radius: 5px;
-        }
-        #debugInfo {
             position: fixed;
             bottom: 0;
             right: 0;
+        }
+        #debugInfo {
+            position: fixed;
+            bottom: 40px;  /* Adjusted to make room for the button */
+            right: 0;
             max-height: 20vh;
             overflow: auto;
-            border: 3px solid #d4af37; /* Gold frame */
+            border: 3px solid #d4af37;
             background-color: #f4f1de;
             padding: 10px;
             display: flex;
@@ -41,7 +44,8 @@
         #loadingBar {
             width: 0;
             height: 20px;
-            background-color: #d4af37; /* Gold color */
+            background-color: #d4af37;
+            display: none;  /* Initially hidden */
         }
     </style>
 </head>
@@ -52,36 +56,44 @@
         <input type="text" id="name" value="Zane">
         <button type="button" onclick="queryName()">Query</button>
     </form>
-    <div id="loadingBar" style="height: 20px; background-color: grey;">
-    <div id="progress" style="width: 0%; height: 100%; background-color: green;"></div>
-</div>
+    <div id="loadingBar">
+        <div id="progress" style="width: 0%; height: 100%; background-color: green;"></div>
+    </div>
     <div id="analytics"></div>
-    <button id="collapseButton" onclick="toggleDebug()">Collapse</button>
     <div id="debugInfo"></div>
     <div id="charts"></div>
-
     <script>
-        let allData = {};  // Store all data here
+        let allData = {};
 
-        // Function to load all data once
         async function loadData() {
-            for (let year = 1976; year <= 2023; year++) {
+            document.getElementById("loadingBar").style.display = "block";  // Show loading bar
+            document.getElementById("debugInfo").innerHTML = "Starting to load data...";  // Initialize debug info
+
+            const totalYears = 2023 - 1976 + 1;
+            let loadedYears = 0;
+            for (let year = 1976; year <= 2022; year++) {
                 const response = await fetch(`./names/yob${year}.txt`);
                 const text = await response.text();
                 allData[year] = text.split('\n').map(line => {
                     const [name, gender, count] = line.split(',');
                     return { name, gender, count: parseInt(count) };
                 });
+                loadedYears++;
+                const progress = (loadedYears / totalYears) * 100;
+                document.getElementById("progress").style.width = `${progress}%`;
+
+                // Update debug info
+                document.getElementById("debugInfo").innerHTML += `<br>Loaded data for year ${year}`;
             }
+            document.getElementById("loadingBar").style.display = "none";  // Hide loading bar
+            document.getElementById("debugInfo").innerHTML += "<br>All data loaded.";  // Final debug info
         }
 
-        // Load data only once when the page is loaded
         window.addEventListener('load', async () => {
             await loadData();
         });
 
         function queryName() {
-            // Clear existing analytics and charts
             document.getElementById('analytics').innerHTML = '';
             document.getElementById('charts').innerHTML = '';
 
@@ -98,23 +110,22 @@
                 });
             }
 
-            // Your existing analytics and chart generation code here
-const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
-const maleCount = nameData.filter(data => data.gender === 'M').reduce((acc, data) => acc + data.count, 0);
-const femaleCount = nameData.filter(data => data.gender === 'F').reduce((acc, data) => acc + data.count, 0);
-const firstYear = nameData[0]?.year || 'N/A';
-const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
+            const totalOccurrences = nameData.reduce((acc, data) => acc + data.count, 0);
+            const maleCount = nameData.filter(data => data.gender === 'M').reduce((acc, data) => acc + data.count, 0);
+            const femaleCount = nameData.filter(data => data.gender === 'F').reduce((acc, data) => acc + data.count, 0);
+            const firstYear = nameData[0]?.year || 'N/A';
+            const lastYear = nameData[nameData.length - 1]?.year || 'N/A';
 
-analyticsDiv.innerHTML = `
-    <h2>Analytics for ${name}</h2>
-    <p>Total Occurrences: ${totalOccurrences}</p>
-    <p>Male Count: ${maleCount}</p>
-    <p>Female Count: ${femaleCount}</p>
-    <p>First Year Recorded: ${firstYear}</p>
-    <p>Last Year Recorded: ${lastYear}</p>
-`;
+            analyticsDiv.innerHTML = `
+                <h2>Analytics for ${name}</h2>
+                <p>Total Occurrences: ${totalOccurrences}</p>
+                <p>Male Count: ${maleCount}</p>
+                <p>Female Count: ${femaleCount}</p>
+                <p>First Year Recorded: ${firstYear}</p>
+                <p>Last Year Recorded: ${lastYear}</p>
+            `;
 
-// Generate Charts
+            // Generate Charts
 const ctx1 = document.createElement('canvas');
 const ctx2 = document.createElement('canvas');
 const chartDiv1 = document.createElement('div');
@@ -171,23 +182,7 @@ new Chart(ctx2, {
                 debugDiv.style.display = "none";
             }
         }
-      async function loadData() {
-    const totalYears = 2023 - 1976 + 1;
-    let loadedYears = 0;
-    for (let year = 1976; year <= 2023; year++) {
-        const response = await fetch(`./names/yob${year}.txt`);
-        const text = await response.text();
-        allData[year] = text.split('\n').map(line => {
-            const [name, gender, count] = line.split(',');
-            return { name, gender, count: parseInt(count) };
-        });
-        loadedYears++;
-        const progress = (loadedYears / totalYears) * 100;
-        document.getElementById("progress").style.width = `${progress}%`;
-    }
-    // Hide the loading bar when done
-    document.getElementById("loadingBar").style.display = "none";
-}
     </script>
+    <button id="collapseButton" onclick="toggleDebug()">Collapse</button>
 </body>
 </html>
